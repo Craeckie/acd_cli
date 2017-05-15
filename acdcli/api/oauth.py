@@ -226,7 +226,7 @@ class LocalOAuthHandler(OAuthHandler):
 
     AMAZON_OA_LOGIN_URL = 'https://amazon.com/ap/oa'
     AMAZON_OA_TOKEN_URL = 'https://api.amazon.com/auth/o2/token'
-    REDIRECT_URI = 'http://localhost'
+    REDIRECT_URI = 'http://127.0.0.1:53682/'
 
     def __init__(self, path):
         super().__init__(path)
