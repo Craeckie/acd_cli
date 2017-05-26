@@ -84,7 +84,17 @@ _CREATION_SCRIPT = """
 _GEN_DROP_TABLES_SQL = \
     'SELECT "DROP TABLE " || name || ";" FROM sqlite_master WHERE type == "table"'
 
+_migrations = []
+"""list of all schema migrations"""
 
+
+def _migration(func):
+    """scheme migration annotation; must be used in correct order"""
+    _migrations.append(func)
+    return func
+
+
+@_migration
 def _0_to_1(conn):
     conn.executescript(
         'ALTER TABLE nodes ADD updated DATETIME;'
@@ -94,6 +104,7 @@ def _0_to_1(conn):
     conn.commit()
 
 
+@_migration
 def _1_to_2(conn):
     conn.executescript(
         'DROP TABLE IF EXISTS folders;'
@@ -104,6 +115,7 @@ def _1_to_2(conn):
     conn.commit()
 
 
+@_migration
 def _2_to_3(conn):
     conn.executescript(
         # For people upgrading from the main branch to PR374, this line should make the db queries work.
@@ -113,11 +125,7 @@ def _2_to_3(conn):
         'key TEXT NOT NULL, value TEXT, PRIMARY KEY (id, owner, key), FOREIGN KEY(id) REFERENCES nodes (id));'
 
         'CREATE INDEX IF NOT EXISTS ix_parentage_child ON parentage(child);'
-        'CREATE INDEX IF NOT EXISTS ix_parentage_parent ON parentage(parent);'
-        # Having changed the schema, the queries can be optimised differently.
-        # In order to be aware of that, re-analyze the type of data and indexes,
-        # allowing SQLite3 to make better decisions.
-        'ANALYZE;'
+        'REINDEX;'
         'PRAGMA user_version = 3;'
     )
     conn.commit()
@@ -142,7 +150,6 @@ def _3_to_4(conn):
     conn.commit()
 
 _migrations = [_0_to_1, _1_to_2, _2_to_3, _3_to_4]
-"""list of all migrations from index -> index+1"""
 
 
 class SchemaMixin(object):
