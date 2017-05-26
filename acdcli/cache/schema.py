@@ -125,7 +125,13 @@ def _2_to_3(conn):
         'key TEXT NOT NULL, value TEXT, PRIMARY KEY (id, owner, key), FOREIGN KEY(id) REFERENCES nodes (id));'
 
         'CREATE INDEX IF NOT EXISTS ix_parentage_child ON parentage(child);'
+        'CREATE INDEX IF NOT EXISTS ix_parentage_parent ON parentage(parent);'
         'REINDEX;'
+        # Having changed the schema, the queries can be optimised differently.
+        # In order to be aware of that, re-analyze the type of data and indexes,
+        # allowing SQLite3 to make better decisions.
+        'REINDEX;'
+        'ANALYZE;'
         'PRAGMA user_version = 3;'
     )
     conn.commit()
